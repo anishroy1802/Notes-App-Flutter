@@ -27,27 +27,31 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  
-  
-  }
-}
-
-
-class TodoListScreen extends StatefulWidget {
-  @override
-  _TodoListScreenState createState() => _TodoListScreenState();
-}
-
-class _TodoListScreenState extends State<TodoListScreen> {
   List<MyListItem> listItems = [
     MyListItem("Item 1", "Subtitle 1"),
     MyListItem("Item 2", "Subtitle 2")
   ];
+  List<MyListItem> newlistItems = [
+    MyListItem("Item 1", "Subtitle 1"),
+    MyListItem("Item 2", "Subtitle 2")
+  ];
+
   TextEditingController textController = TextEditingController();
+  TextEditingController textController1 = TextEditingController();
 
   void addNewItemToList(String title, String subtitle) {
     setState(() {
       listItems.add(MyListItem(title, subtitle));
+    });
+  }
+
+  void filterList(String key) {
+    setState(() {
+      if (key != null) {
+        newlistItems = listItems.where((i) => i.title.contains(key)).toList();
+      } else {
+        newlistItems = listItems.toList();
+      }
     });
   }
 
@@ -60,10 +64,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
       body: ListView(
         children: <Widget>[
               TextField(
+                decoration: new InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    labelText: "What are you looking for?"),
                 controller: textController,
-                // onChanged: (String newText) {
-                //   val = newText;
-                // },
+                onChanged: (String newText) {
+                  filterList(newText);
+                },
               )
             ] +
             getWidgetsList(listItems),
@@ -72,7 +79,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
         tooltip: "Add",
         child: Icon(Icons.add),
         onPressed: () {
-          addNewItemToList(textController.text, "Enter description here(optional)");
+          addNewItemToList(
+              textController.text, "Enter description here(optional)");
           textController.text = "";
         },
       ),
