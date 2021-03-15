@@ -1,89 +1,168 @@
+//import 'dart:html';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+//import 'package:shared_preferences/shared_preferences.dart';
 
-class MyListItem {
-  String title = "";
-  String subTitle = "";
+TextEditingController searchBarController = TextEditingController();
+TextEditingController drawingNameInputController = TextEditingController();
+List<String> drawingListNames = [];
+List<DrawingScreen> drawingScreens = [];
 
-  MyListItem(String title, String subTitle) {
-    this.title = title;
-    this.subTitle = subTitle;
-  }
-}
-
-List<ListTile> getWidgetsList(List<MyListItem> listItems) {
-  List<ListTile> widgets = [];
-  for (int i = 0; i < listItems.length; i++) {
-    widgets.add(ListTile(
-      title: Text(listItems[i].title),
-      subtitle: Text(listItems[i].subTitle),
-    ));
-  }
-  return widgets;
-}
-
-class TodoListScreen extends StatefulWidget {
+class DrawingHomeScreen extends StatefulWidget {
   @override
-  _TodoListScreenState createState() => _TodoListScreenState();
+  _DrawingHomeScreenState createState() => _DrawingHomeScreenState();
 }
 
-class _TodoListScreenState extends State<TodoListScreen> {
-  List<MyListItem> listItems = [
-    MyListItem("Item 1", "Subtitle 1"),
-    MyListItem("Item 2", "Subtitle 2")
-  ];
-  List<MyListItem> newlistItems = [
-    MyListItem("Item 1", "Subtitle 1"),
-    MyListItem("Item 2", "Subtitle 2")
-  ];
+// saveData() async{
+//   SharedPreferences preferences = await SharedPreferences.getInstance();
+//   preferences.
+// }
 
-  TextEditingController textController = TextEditingController();
-  TextEditingController textController1 = TextEditingController();
-
-  void addNewItemToList(String title, String subtitle) {
-    setState(() {
-      listItems.add(MyListItem(title, subtitle));
-    });
-  }
-
-  void filterList(String key) {
-    setState(() {
-      if (key != null) {
-        newlistItems = listItems.where((i) => i.title.contains(key)).toList();
-      } else {
-        newlistItems = listItems.toList();
-      }
-    });
-  }
-
+//DrawingHomeScreen is a modification of the earlier TodoListScreen
+class _DrawingHomeScreenState extends State<DrawingHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("DevClub TODO List App"),
+        backgroundColor: Colors.deepOrange,
+        title: Text('Flutter Assignment'),
+        centerTitle: true,
       ),
-      body: ListView(
+      body: Column(
         children: <Widget>[
-              TextField(
-                decoration: new InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    labelText: "What are you looking for?"),
-                controller: textController,
-                onChanged: (String newText) {
-                  filterList(newText);
+          Container(
+              height: 40,
+              child: TextField(
+                controller: searchBarController,
+                //Search Bar
+              )),
+          ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: drawingListNames.length,
+            itemBuilder: (context, int index) {
+              return new Dismissible(
+                key: UniqueKey(),
+                child: ListTile(
+                  title: Text(drawingListNames[index]),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => drawingScreens[index]),
+                    );
+                  },
+                ),
+                onDismissed: (direction) {
+                  drawingListNames.removeAt(index);
+                  drawingScreens.removeAt(index);
                 },
-              )
-            ] +
-            getWidgetsList(listItems),
+              );
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: "Add",
-        child: Icon(Icons.add),
-        onPressed: () {
-          addNewItemToList(
-              textController.text, "Enter description here(optional)");
-          textController.text = "";
-        },
-      ),
+          tooltip: "Add",
+          child: Icon(Icons.add),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                      title: Text("Enter drawing name"),
+                      content: TextField(
+                        controller: drawingNameInputController,
+                      ),
+                      actions: <Widget>[
+                        MaterialButton(
+                            elevation: 5.0,
+                            child: Icon(Icons.check),
+                            onPressed: () {
+                              setState(() {
+                                drawingListNames.add(
+                                  drawingNameInputController.text,
+                                );
+                                drawingScreens.add(
+                                  new DrawingScreen(),
+                                );
+                              });
+                              drawingNameInputController.text = "";
+                              Navigator.of(context).pop();
+                            }),
+                        MaterialButton(
+                            elevation: 5.0,
+                            child: Icon(Icons.cancel),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              drawingNameInputController.text = "";
+                            })
+                      ]);
+                });
+          }),
     );
+  }
+}
+
+//DrawingScreen is our new panel where we give our signatures
+class DrawingScreen extends StatefulWidget {
+  @override
+  _DrawingScreenState createState() => _DrawingScreenState();
+}
+
+class _DrawingScreenState extends State<DrawingScreen> {
+  List<Offset> _points = <Offset>[];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: new Container(
+        child: new GestureDetector(
+          onPanUpdate: (DragUpdateDetails details) {
+            setState(() {
+              RenderBox object = context.findRenderObject();
+              Offset _localPosition =
+                  object.globalToLocal(details.globalPosition);
+              _points = new List.from(_points)..add(_localPosition);
+            });
+          },
+          onPanEnd: (DragEndDetails details) => _points.add(null),
+          child: new CustomPaint(
+            painter: new Signature(points: _points),
+            size: Size.infinite,
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: new Icon(Icons.clear),
+          onPressed: () {
+            _points.clear();
+          }),
+    );
+  }
+}
+
+class Signature extends CustomPainter {
+  List<Offset> points;
+
+  Signature({this.points});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = new Paint();
+    paint.color = Colors.black;
+    paint.strokeCap = StrokeCap.round;
+    paint.strokeWidth = 5.0;
+    for (int i = 0; i < points.length - 1; i++) {
+      if (points[i] != null && points[i + 1] != null) {
+        canvas.drawLine(points[i], points[i + 1], paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(Signature oldDelegate) {
+    return oldDelegate.points != points;
   }
 }

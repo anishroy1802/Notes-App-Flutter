@@ -21,10 +21,10 @@ class MyApp extends StatelessWidget {
           // or simply save your changes to "hot reload" in a Flutter IDE).
           // Notice that the counter didn't reset back to zero; the application
           // is not restarted.
-          primarySwatch: Colors.teal,
-          brightness: Brightness.dark,
+          primarySwatch: Colors.blueGrey,
+
           backgroundColor: const Color(0xFF212121),
-          accentColor: Colors.tealAccent,
+          accentColor: Colors.deepOrangeAccent,
           accentIconTheme: IconThemeData(color: Colors.black),
           dividerColor: Colors.black12,
           // This makes the visual density adapt to the platform that you run
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
           // closer together (more dense) than on mobile platforms.
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: TodoListScreen());
+        home: DrawingHomeScreen());
   }
 }
 
