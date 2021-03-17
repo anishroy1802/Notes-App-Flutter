@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 TextEditingController searchBarController = TextEditingController();
 TextEditingController drawingNameInputController = TextEditingController();
 List<String> drawingListNames = [];
+List<String> newDrawingListNames = [];
+
 List<DrawingScreen> drawingScreens = [];
 
 class DrawingHomeScreen extends StatefulWidget {
@@ -21,6 +23,17 @@ class DrawingHomeScreen extends StatefulWidget {
 
 //DrawingHomeScreen is a modification of the earlier TodoListScreen
 class _DrawingHomeScreenState extends State<DrawingHomeScreen> {
+  void filterList(String key) {
+    setState(() {
+      if (key != null) {
+        newDrawingListNames =
+            drawingListNames.where((i) => i.contains(key)).toList();
+      } else {
+        newDrawingListNames = drawingListNames.toList();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,18 +47,25 @@ class _DrawingHomeScreenState extends State<DrawingHomeScreen> {
           Container(
               height: 40,
               child: TextField(
+                decoration: new InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                ),
+
                 controller: searchBarController,
+                onChanged: (String newText) {
+                  filterList(newText);
+                },
                 //Search Bar
               )),
           ListView.builder(
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
-            itemCount: drawingListNames.length,
+            itemCount: newDrawingListNames.length,
             itemBuilder: (context, int index) {
               return new Dismissible(
                 key: UniqueKey(),
                 child: ListTile(
-                  title: Text(drawingListNames[index]),
+                  title: Text(newDrawingListNames[index]),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -55,8 +75,8 @@ class _DrawingHomeScreenState extends State<DrawingHomeScreen> {
                   },
                 ),
                 onDismissed: (direction) {
-                  drawingListNames.removeAt(index);
-                  drawingScreens.removeAt(index);
+                  newDrawingListNames.removeAt(index);
+                  newDrawingListNames.removeAt(index);
                 },
               );
             },
